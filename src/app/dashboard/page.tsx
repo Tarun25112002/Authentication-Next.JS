@@ -1,6 +1,4 @@
-import { redirect } from "next/navigation";
-import { getSession } from "@/actions/session.actions";
-import { logout } from "@/actions/auth.actions";
+import { requireAuth } from "@/actions/session.actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -9,12 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { logout } from "@/actions/auth.actions";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  const session = await getSession();
+export default async function DashboardPage() {
+  const session = await requireAuth();
 
-  if (!session?.user) {
-    redirect("/login");
+  async function handleLogout() {
+    "use server";
+    await logout();
   }
 
   return (
@@ -22,17 +23,12 @@ export default async function Home() {
       <div className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold">Welcome Home</h1>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
             <p className="text-muted-foreground">
-              Hello, {session.user?.name || session.user?.email}!
+              Welcome back, {session.user?.name}!
             </p>
           </div>
-          <form
-            action={async () => {
-              "use server";
-              await logout();
-            }}
-          >
+          <form action={handleLogout}>
             <Button variant="outline">Sign Out</Button>
           </form>
         </div>
@@ -48,7 +44,7 @@ export default async function Home() {
                 <p className="text-sm font-medium text-muted-foreground">
                   Name
                 </p>
-                <p className="text-lg">{session.user?.name || "Not set"}</p>
+                <p className="text-lg">{session.user?.name}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
@@ -56,13 +52,21 @@ export default async function Home() {
                 </p>
                 <p className="text-lg">{session.user?.email}</p>
               </div>
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Role
+                </p>
+                <p className="text-lg capitalize">
+                  {session.user?.role || "user"}
+                </p>
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
               <CardTitle>Account Status</CardTitle>
-              <CardDescription>Current session information</CardDescription>
+              <CardDescription>Current account information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="flex items-center justify-between">
@@ -75,7 +79,7 @@ export default async function Home() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-muted-foreground">
-                  Authenticated
+                  Email Verified
                 </span>
                 <span className="text-sm text-green-600 dark:text-green-400">
                   Yes

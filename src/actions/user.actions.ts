@@ -52,7 +52,6 @@ export async function updateProfile(
     return { success: false, error: "User not found!" };
   }
 
-  // Check if user is OAuth - can't change email for OAuth users
   const account = await db.account.findFirst({
     where: { userId: dbUser.id },
   });

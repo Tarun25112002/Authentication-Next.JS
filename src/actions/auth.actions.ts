@@ -15,6 +15,11 @@ import bcrypt from "bcryptjs";
 import { generateToken } from "@/lib/utils";
 import { getUserByEmail } from "./user.actions";
 import type { ActionResponse } from "@/types";
+import {
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendTwoFactorEmail,
+} from "@/lib/mail";
 
 export async function login(
   values: LoginInput,
@@ -34,6 +39,11 @@ export async function login(
     return { success: false, error: "Invalid credentials!" };
   }
 
+  const passwordsMatch = await bcrypt.compare(password, existingUser.password);
+  if (!passwordsMatch) {
+    return { success: false, error: "Invalid credentials!" };
+  }
+
   if (!existingUser.isActive) {
     return { success: false, error: "Account is disabled!" };
   }
@@ -42,6 +52,7 @@ export async function login(
     const verificationToken = await generateVerificationToken(
       existingUser.email,
     );
+    await sendVerificationEmail(existingUser.email, verificationToken.token);
     return { success: true, message: "Confirmation email sent!" };
   }
 
@@ -78,6 +89,7 @@ export async function login(
       });
     } else {
       const twoFactorToken = await generateTwoFactorToken(existingUser.email);
+      await sendTwoFactorEmail(existingUser.email, twoFactorToken.token);
       return { success: true, data: { twoFactor: true } as any };
     }
   }
@@ -86,7 +98,7 @@ export async function login(
     await signIn("credentials", {
       email,
       password,
-      redirectTo: callbackUrl || "/dashboard",
+      redirectTo: callbackUrl || "/",
     });
 
     return { success: true };
@@ -130,9 +142,7 @@ export async function register(values: RegisterInput): Promise<ActionResponse> {
   });
 
   const verificationToken = await generateVerificationToken(email);
-
-  // Send verification email here
-  // await sendVerificationEmail(verificationToken.email, verificationToken.token);
+  await sendVerificationEmail(email, verificationToken.token);
 
   return { success: true, message: "Confirmation email sent!" };
 }
@@ -142,11 +152,11 @@ export async function logout(): Promise<void> {
 }
 
 export async function signInWithGoogle(callbackUrl?: string): Promise<void> {
-  await signIn("google", { redirectTo: callbackUrl || "/dashboard" });
+  await signIn("google", { redirectTo: callbackUrl || "/" });
 }
 
 export async function signInWithGithub(callbackUrl?: string): Promise<void> {
-  await signIn("github", { redirectTo: callbackUrl || "/dashboard" });
+  await signIn("github", { redirectTo: callbackUrl || "/" });
 }
 
 export async function generateVerificationToken(email: string) {
@@ -312,6 +322,7 @@ export async function resetPassword(values: {
   }
 
   const passwordResetToken = await generatePasswordResetToken(email);
+  await sendPasswordResetEmail(email, passwordResetToken.token);
 
   return { success: true, message: "Reset email sent!" };
 }

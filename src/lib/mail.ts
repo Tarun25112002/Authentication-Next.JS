@@ -3,9 +3,6 @@ import { Resend } from "resend";
 const resend = new Resend(process.env.RESEND_API_KEY);
 const domain = process.env.NEXT_PUBLIC_APP_URL;
 
-// ============================================
-// SEND 2FA CODE EMAIL ✅
-// ============================================
 export async function sendTwoFactorEmail(email: string, token: string) {
   try {
     await resend.emails.send({
@@ -81,9 +78,6 @@ export async function sendTwoFactorEmail(email: string, token: string) {
   }
 }
 
-// ============================================
-// SEND VERIFICATION EMAIL
-// ============================================
 export async function sendVerificationEmail(email: string, token: string) {
   const confirmLink = `${domain}/verify-email?token=${token}`;
 
@@ -144,9 +138,6 @@ export async function sendVerificationEmail(email: string, token: string) {
   }
 }
 
-// ============================================
-// SEND PASSWORD RESET EMAIL
-// ============================================
 export async function sendPasswordResetEmail(email: string, token: string) {
   const resetLink = `${domain}/new-password?token=${token}`;
 

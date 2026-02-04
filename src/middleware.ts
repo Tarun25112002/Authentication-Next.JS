@@ -1,10 +1,13 @@
-import { auth } from "@/lib/auth";
+import NextAuth from "next-auth";
+import authEdgeConfig from "@/lib/auth.edge";
 import {
   DEFAULT_LOGIN_REDIRECT,
   apiAuthPrefix,
   authRoutes,
   publicRoutes,
-} from "@/routes";
+} from "@/lib/routes";
+
+const { auth } = NextAuth(authEdgeConfig);
 
 export default auth((req) => {
   const { nextUrl } = req;
