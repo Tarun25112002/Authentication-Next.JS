@@ -53,7 +53,6 @@ export const {
         if (existingUser && !existingUser.isActive) return false;
       }
 
-      // Login history should never block a successful authentication.
       if (user.id) {
         try {
           await db.loginHistory.create({
